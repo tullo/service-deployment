@@ -1,0 +1,16 @@
+creation_rules:
+  - path_regex: .*/staging/.*
+    encrypted-regex: ^(data|stringData)$
+    gcp_kms: >-
+      projects/stackwise-starter-kit/locations/global/keyRings/gke-argocd/cryptoKeys/gke
+    pgp: >-
+      E03741868C02382277A3D0A141611E17EA20D77B,
+      0C304B8BF332F7FF4453E3FE93A1FC0545354082
+  - path_regex: .*/production/.*
+    encrypted-regex: ^(data|stringData)$
+    pgp: >-
+      E03741868C02382277A3D0A141611E17EA20D77B,
+      0C304B8BF332F7FF4453E3FE93A1FC0545354082
+  - path_regex: \.enc\.env-db$
+    pgp: >-
+      E03741868C02382277A3D0A141611E17EA20D77B
