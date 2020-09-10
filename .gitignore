@@ -1,0 +1,3 @@
+# ignore locale env files
+**/.env
+**/.env-db
