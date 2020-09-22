@@ -147,7 +147,7 @@ gc-config-set:
 	@gcloud config set project ${PROJECT}
 	@gcloud config set compute/zone $(ZONE)
 
-config: gc-projects-create gc-config-set gc-auth-configure-docker
+gc-config-initial: gc-projects-create gc-config-set gc-auth-configure-docker
 	@gcloud beta billing projects link $(PROJECT) --billing-account=$(BILLING_ACCOUNT_ID)
 
 # https://cloud.google.com/sdk/docs/configurations
@@ -524,7 +524,7 @@ gc-db-describe:
 		--verbosity=info
 
 # see Notes.md: [Create a Kubernetes Cluster]
-cluster: gc-clusters-list
+gc-cluster-describe: gc-clusters-list
 	@gcloud compute instances list
 #	@gcloud compute machine-types list | grep ${ZONE}
 	@$(eval k8s_version=`gcloud container get-server-config --zone=${ZONE} --format=json | jq -r '.validNodeVersions[0]'`)
