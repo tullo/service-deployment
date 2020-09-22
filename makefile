@@ -331,8 +331,12 @@ kctl-status:
 # Listen on a random port locally, forwarding to 3000 in the pod
 # - kubectl port-forward pod/${APP} :3000
 # kubectl port-forward -h
-kctl-port-forward: kctl-get-pods
+kctl-port-forward-sales-api: kctl-get-pods
 	kubectl port-forward service/sales-api 3000
+
+kctl-port-forward-argocd:
+	@kubectl port-forward svc/argocd-server -n argocd 8080:443
+
 
 kctl-db-secret-create:
 	@echo +-----------------------------------------------------+
