@@ -7,8 +7,9 @@ patchesStrategicMerge:
 - env-patch.yaml
 - images-patch.yaml
 - loadbalancer-patch.yaml
-- secrets-patch.yaml
 - replicas-patch.yaml
+- resources-patch.yaml
+- secrets-patch.yaml
 #secretGenerator:
 #- envs:
 #  - .env-db
