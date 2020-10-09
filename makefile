@@ -23,25 +23,25 @@ cluster-info:
 	@kubectl cluster-info --context kind-$(CLUSTER)
 
 images-load:
-	@$(shell go env GOPATH)/bin/kind load docker-image eu.gcr.io/$(PROJECT)/sales-api-amd64:$(VERSION) --name $(CLUSTER)
-	@$(shell go env GOPATH)/bin/kind load docker-image eu.gcr.io/$(PROJECT)/metrics-amd64:$(VERSION) --name $(CLUSTER)
+	@$(shell go env GOPATH)/bin/kind load docker-image tullo/sales-api-amd64:$(VERSION) --name $(CLUSTER)
+	@$(shell go env GOPATH)/bin/kind load docker-image tullo/metrics-amd64:$(VERSION) --name $(CLUSTER)
 
 images-list:
 	@docker exec -it $(CLUSTER)-control-plane crictl images
 
 kubeval:
-	@kustomize build ./dev | kubeval --strict --force-color -
+	@$$(go env GOPATH)/bin/kustomize build ./dev | kubeval --strict --force-color -
 
 deployment-apply: kubeval
-	@kustomize build ./dev | kubectl apply --validate -f -
-#	@kustomize build ./dev | kubectl apply --dry-run=client --validate -f -
+	@$$(go env GOPATH)/bin/kustomize build ./dev | kubectl apply --validate -f -
+#	@$$(go env GOPATH)/bin/kustomize build ./dev | kubectl apply --dry-run=client --validate -f -
 
 deployment-delete:
-	kustomize build ./dev | kubectl delete -f -
+	@$$(go env GOPATH)/bin/kustomize build ./dev | kubectl delete -f -
 
 update-sales-api:
-	@$(shell go env GOPATH)/bin/kind load docker-image eu.gcr.io/$(PROJECT)/sales-api-amd64:$(VERSION) --name $(CLUSTER)
-	@kubectl set image deployment -l app=sales-api sales-api=eu.gcr.io/$(PROJECT)/sales-api-amd64:$(VERSION)
+	@$$(go env GOPATH)/bin/kind load docker-image tullo/sales-api-amd64:$(VERSION) --name $(CLUSTER)
+	@$$(go env GOPATH)/bin/kustomize set image deployment -l app=sales-api sales-api=tullo/sales-api-amd64:$(VERSION)
 
 get-pods:
 	@kubectl get pods
@@ -55,7 +55,7 @@ logs:
 	@kubectl logs --tail=8 -l app=sales-api --container metrics
 	@echo
 	@echo ====== sales-api ========================================================
-	@kubectl logs --tail=1 -l app=sales-api --container app
+	@kubectl logs --tail=5 -l app=sales-api --container app
 	@echo
 	@echo ====== zipkin ===========================================================
 	@kubectl logs --tail=10 -l app=sales-api --container zipkin
@@ -76,7 +76,7 @@ health-request:
 	@kubectl exec -it ${DB} -- pg_isready
 	@echo 
 	@echo ====== sales-api =====================================================
-	@wget -q -O - http://localhost:3000/v1/health | jq
+	@wget -q -O - http://localhost:3000/v1/readiness | jq
 
 users-request:
 	@$(eval TOKEN=`curl --no-progress-meter --user 'admin@example.com:gophers' \

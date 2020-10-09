@@ -6,6 +6,7 @@ resources:
   - postgres.yaml
 patchesStrategicMerge:
 - env-patch.yaml
+- images-patch.yaml
 - replicas-patch.yaml
 - rollout-strategy-patch.yaml
 
