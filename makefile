@@ -14,7 +14,7 @@ use-context:
 
 cluster-create:
 	$(shell go env GOPATH)/bin/kind create cluster \
-		--image kindest/node:v1.19.1 --name $(CLUSTER) --config dev/kind-config.yaml
+		--image kindest/node:v1.19.4 --name $(CLUSTER) --config dev/kind-config.yaml
 
 cluster-delete:
 	$(shell go env GOPATH)/bin/kind delete cluster --name $(CLUSTER)
