@@ -9,7 +9,7 @@ spec:
       - name: app
         env:
         - name: SALES_AUTH_PRIVATE_KEY_FILE
-          value: "/app/private.pem"
+          value: "/service/private.pem"
         - name: SALES_DB_HOST
           valueFrom:
             configMapKeyRef:
