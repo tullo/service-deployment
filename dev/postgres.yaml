@@ -15,8 +15,14 @@ spec:
       hostNetwork: true
       containers:
       - name: postgres
-        image: postgres:12.3-alpine
+        image: postgres:13.1-alpine
         imagePullPolicy: Always
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: db_pass
         ports:
         - name: postgres
           containerPort: 5432
