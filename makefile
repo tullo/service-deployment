@@ -3,6 +3,8 @@ SHELL = /bin/bash -o pipefail
 export PROJECT = tullo-starter-kit
 export CLUSTER = tullo-starter-cluster
 export VERSION = 1.0
+export PAGE = 1
+export ROWS = 20
 
 .DEFAULT_GOAL := contexts
 
@@ -64,11 +66,11 @@ schema: get-pods migrate seed
 
 migrate:
 	@$(eval APP=`kubectl get pod -l app=sales-api -o jsonpath='{.items[0].metadata.name}'`)
-	@kubectl exec -it ${APP} --container app  -- /app/admin --db-disable-tls=1 migrate
+	@kubectl exec -it ${APP} --container app  -- /service/admin --db-disable-tls=1 migrate
 
 seed:
 	@$(eval APP=`kubectl get pod -l app=sales-api -o jsonpath='{.items[0].metadata.name}'`)
-	@kubectl exec -it ${APP} --container app  -- /app/admin --db-disable-tls=1 seed
+	@kubectl exec -it ${APP} --container app  -- /service/admin --db-disable-tls=1 seed
 
 health-request:
 	@echo ====== postgres ======================================================
@@ -76,12 +78,17 @@ health-request:
 	@kubectl exec -it ${DB} -- pg_isready
 	@echo 
 	@echo ====== sales-api =====================================================
-	@wget -q -O - http://localhost:3000/v1/readiness | jq
+	@wget -q -O - http://localhost:4000/debug/readiness | jq
 
 users-request:
 	@$(eval TOKEN=`curl --no-progress-meter --user 'admin@example.com:gophers' \
-		http://localhost:3000/v1/users/token | jq -r '.token'`)
-	@wget -q -O - --header "Authorization: Bearer ${TOKEN}" http://localhost:3000/v1/users | jq
+		http://localhost:3000/v1/users/token/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1 | jq -r '.token'`)
+	@wget -q -O - --header "Authorization: Bearer ${TOKEN}" http://localhost:3000/v1/users/${PAGE}/${ROWS}  | jq
+
+products-request:
+	@$(eval TOKEN=`curl --no-progress-meter --user 'admin@example.com:gophers' \
+		http://localhost:3000/v1/users/token/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1 | jq -r '.token'`)
+	@wget -q -O - --header "Authorization: Bearer ${TOKEN}" http://localhost:3000/v1/products/${PAGE}/${ROWS}  | jq
 
 status:
 	@echo ====== nodes =========================================================
