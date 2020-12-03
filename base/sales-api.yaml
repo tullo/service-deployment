@@ -39,14 +39,14 @@ spec:
           containerPort: 4000
         readinessProbe:
           httpGet:
-            path: /v1/readiness
-            port: app
+            path: /debug/readiness
+            port: app-debug
           initialDelaySeconds: 30
           periodSeconds: 15
         livenessProbe:
           httpGet:
-            path: /v1/liveness
-            port: app
+            path: /debug/liveness
+            port: app-debug
           initialDelaySeconds: 30
           periodSeconds: 15
         resources: {}
