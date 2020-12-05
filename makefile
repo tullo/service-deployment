@@ -14,6 +14,15 @@ contexts:
 use-context:
 	@kubectl config use-context kind-$(CLUSTER)
 
+kind-install:
+	@GO111MODULE="on" go get sigs.k8s.io/kind@v0.9.0
+
+kubeval-install:
+	@GO111MODULE=on go get github.com/instrumenta/kubeval
+
+kustomize-install:
+	@GO111MODULE=on go get sigs.k8s.io/kustomize/kustomize/v3
+
 cluster-create:
 	$(shell go env GOPATH)/bin/kind create cluster \
 		--image kindest/node:v1.19.4 --name $(CLUSTER) --config dev/kind-config.yaml
@@ -32,7 +41,7 @@ images-list:
 	@docker exec -it $(CLUSTER)-control-plane crictl images
 
 kubeval:
-	@$$(go env GOPATH)/bin/kustomize build ./dev | kubeval --strict --force-color -
+	@$$(go env GOPATH)/bin/kustomize build ./dev | $$(go env GOPATH)/bin/kubeval --strict --force-color -
 
 deployment-apply: kubeval
 	@$$(go env GOPATH)/bin/kustomize build ./dev | kubectl apply --validate -f -
