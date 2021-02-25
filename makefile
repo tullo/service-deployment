@@ -15,27 +15,27 @@ use-context:
 	@kubectl config use-context kind-$(CLUSTER)
 
 kind-install:
-	@GO111MODULE="on" go get sigs.k8s.io/kind@v0.9.0
+	@GO111MODULE="on" go install -v sigs.k8s.io/kind@v0.10.0
 
 kubeval-install:
-	@GO111MODULE=on go get github.com/instrumenta/kubeval
+	@GO111MODULE=on go install -v github.com/instrumenta/kubeval@0.15.0
 
 kustomize-install:
-	@GO111MODULE=on go get sigs.k8s.io/kustomize/kustomize/v3
+	@GO111MODULE=on go install -v sigs.k8s.io/kustomize/kustomize/v4@v4.0.1
 
 cluster-create:
-	$(shell go env GOPATH)/bin/kind create cluster \
-		--image kindest/node:v1.20.0 --name $(CLUSTER) --config dev/kind-config.yaml
+	$$(go env GOPATH)/bin/kind create cluster \
+		--image kindest/node:v1.20.2 --name $(CLUSTER) --config dev/kind-config.yaml
 
 cluster-delete:
-	$(shell go env GOPATH)/bin/kind delete cluster --name $(CLUSTER)
+	$$(go env GOPATH)/bin/kind delete cluster --name $(CLUSTER)
 
 cluster-info:
 	@kubectl cluster-info --context kind-$(CLUSTER)
 
 images-load:
-	@$(shell go env GOPATH)/bin/kind load docker-image tullo/sales-api-amd64:$(VERSION) --name $(CLUSTER)
-	@$(shell go env GOPATH)/bin/kind load docker-image tullo/metrics-amd64:$(VERSION) --name $(CLUSTER)
+	@$$(go env GOPATH)/bin/kind load docker-image tullo/sales-api-amd64:$(VERSION) --name $(CLUSTER)
+	@$$(go env GOPATH)/bin/kind load docker-image tullo/metrics-amd64:$(VERSION) --name $(CLUSTER)
 
 images-list:
 	@docker exec -it $(CLUSTER)-control-plane crictl images
@@ -81,23 +81,33 @@ seed:
 	@$(eval APP=`kubectl get pod -l app=sales-api -o jsonpath='{.items[0].metadata.name}'`)
 	@kubectl exec -it ${APP} --container app  -- /service/admin --db-disable-tls=1 seed
 
+
+health-request:	NODE_IP=$$(docker inspect --format='{{.NetworkSettings.Networks.kind.IPAddress}}' ${CLUSTER}-control-plane)
 health-request:
 	@echo ====== postgres ======================================================
 	@$(eval DB=`kubectl get pod -l "app=postgres" -o jsonpath='{.items[0].metadata.name}'`)
 	@kubectl exec -it ${DB} -- pg_isready
 	@echo 
 	@echo ====== sales-api =====================================================
-	@wget -q -O - http://localhost:4000/debug/readiness | jq
+	@wget -q -O - http://${NODE_IP}:4000/debug/readiness | jq
 
+
+.PHONY: users-request
+users-request: NODE_IP=$$(docker inspect --format='{{.NetworkSettings.Networks.kind.IPAddress}}' ${CLUSTER}-control-plane)
+users-request: SIGNING_KEY_ID=54bb2165-71e1-41a6-af3e-7da4a0e1e2c1
+users-request: TOKEN_URL=http://${NODE_IP}:3000/v1/users/token/${SIGNING_KEY_ID}
+users-request: TOKEN=$$(curl --no-progress-meter --user 'admin@example.com:gophers' ${TOKEN_URL} | jq -r '.token')
+users-request: USERS_URL=http://${NODE_IP}:3000/v1/users/${PAGE}/${ROWS}
 users-request:
-	@$(eval TOKEN=`curl --no-progress-meter --user 'admin@example.com:gophers' \
-		http://localhost:3000/v1/users/token/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1 | jq -r '.token'`)
-	@wget -q -O - --header "Authorization: Bearer ${TOKEN}" http://localhost:3000/v1/users/${PAGE}/${ROWS}  | jq
+	@wget -q -O - --header "Authorization: Bearer ${TOKEN}" ${USERS_URL} | jq
 
+products-request: NODE_IP=$$(docker inspect --format='{{.NetworkSettings.Networks.kind.IPAddress}}' ${CLUSTER}-control-plane)
+products-request: SIGNING_KEY_ID=54bb2165-71e1-41a6-af3e-7da4a0e1e2c1
+products-request: TOKEN_URL=http://${NODE_IP}:3000/v1/users/token/${SIGNING_KEY_ID}
+products-request: TOKEN=$$(curl --no-progress-meter --user 'admin@example.com:gophers' ${TOKEN_URL} | jq -r '.token')
+products-request: PRODUCTS_URL=http://${NODE_IP}:3000/v1/products/${PAGE}/${ROWS}
 products-request:
-	@$(eval TOKEN=`curl --no-progress-meter --user 'admin@example.com:gophers' \
-		http://localhost:3000/v1/users/token/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1 | jq -r '.token'`)
-	@wget -q -O - --header "Authorization: Bearer ${TOKEN}" http://localhost:3000/v1/products/${PAGE}/${ROWS}  | jq
+	@wget -q -O - --header "Authorization: Bearer ${TOKEN}" ${PRODUCTS_URL}  | jq
 
 status:
 	@echo ====== nodes =========================================================
