@@ -22,7 +22,7 @@ SOPS_PGP_FP='gpg key fingerprint list; comma separated'
 # run "sops-decrypt-secrets" target to populate the file.
 File = staging/.env
 ifneq ($(wildcard $(File)),)
-include staging/.env
+include staging/.env # defines SOPS_PGP_FP=E037... etc.
 endif
 #export
 
@@ -64,7 +64,7 @@ show-configs: kctl-config-contexts gc-configurations-list
 # https://github.com/mozilla/sops
 sops-encrypt-file-using-sops.yaml:
 	@echo ====== encrypt secrets using keys defined in \.sops.yaml ====
-	@$$(go env GOPATH)/bin/sops config.staging.yaml
+	@$$(go env GOPATH)/bin/sops --encrypt staging/.env
 
 sops-k8s-secret-create: sops-decrypt-secrets
 	@kubectl create secret generic app-secret \
@@ -84,21 +84,19 @@ sops-k8s-secret-decrypt:
 	kubectl apply --dry-run=client --validate -f <($$(go env GOPATH)/bin/sops -d staging/staging-app-secret.yaml)
 
 sops-encrypt-secrets:
-	@echo ====== encrypt secrets using fingerprint:  ${SOPS_PGP_FP} ====
-	@$$(go env GOPATH)/bin/sops --verbose -p ${SOPS_PGP_FP} -e staging/.env > staging/.enc.env
-	@$$(go env GOPATH)/bin/sops --verbose -p ${SOPS_PGP_FP} -e staging/.env-db > staging/.enc.env-db
+	@$$(go env GOPATH)/bin/sops --verbose -e staging/.env > staging/.enc.env
+	@$$(go env GOPATH)/bin/sops --verbose -e staging/.env-db > staging/.enc.env-db
 
-.PHONY: sops-decrypt-secrets
 sops-decrypt-secrets:
 	@echo ====== decrypt secrets ====
 	@$$(go env GOPATH)/bin/sops --verbose --decrypt --output=staging/.env staging/.enc.env
 	@$$(go env GOPATH)/bin/sops --verbose --decrypt --output=staging/.env-db staging/.enc.env-db
 
 sops-edit-env:
-	@$$(go env GOPATH)/bin/sops --verbose -p ${SOPS_PGP_FP} staging/.enc.env
+	@$$(go env GOPATH)/bin/sops --verbose staging/.enc.env
 
 sops-edit-env-db:
-	@$$(go env GOPATH)/bin/sops --verbose -p ${SOPS_PGP_FP} staging/.enc.env-db
+	@$$(go env GOPATH)/bin/sops --verbose staging/.enc.env-db
 
 sops-add-access:
 	gpg --list-keys
