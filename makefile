@@ -2,7 +2,7 @@
 SHELL = /bin/bash -o pipefail
 VERSION = 1.0
 # service repo commit hash references a specific docker image 
-COMMIT_HASH = 8bb6a408e766ff55940a90ec67f9c3e424e5f69f
+COMMIT_HASH = da480a02e092eefd07ff83ac2c428339625fa76f
 ACCOUNT = xyz@gmail.com
 BILLING_ACCOUNT_ID = ABCDEF-GHIJKL-NMOPQR
 SERVICE_ACCOUNT = stackwise
@@ -64,7 +64,7 @@ show-configs: kctl-config-contexts gc-configurations-list
 # https://github.com/mozilla/sops
 sops-encrypt-file-using-sops.yaml:
 	@echo ====== encrypt secrets using keys defined in \.sops.yaml ====
-	@$(shell go env GOPATH)/bin/sops config.staging.yaml
+	@$$(go env GOPATH)/bin/sops config.staging.yaml
 
 sops-k8s-secret-create: sops-decrypt-secrets
 	@kubectl create secret generic app-secret \
@@ -72,7 +72,7 @@ sops-k8s-secret-create: sops-decrypt-secrets
 
 sops-k8s-secret-encrypt:
 	@echo ====== encrypt staging-app-secret.yaml using keys defined in \.sops.yaml ======
-	@$(shell go env GOPATH)/bin/sops --verbose -e -in-place \
+	@$$(go env GOPATH)/bin/sops --verbose -e -in-place \
 		--encrypted-regex '^(data|stringData)$$' staging/staging-app-secret.yaml
 #	@$(shell go env GOPATH)/bin/sops --verbose -e \
 		-in-place staging/staging-app-secret.yaml # results in encrypted metadata.name 
@@ -85,27 +85,28 @@ sops-k8s-secret-decrypt:
 
 sops-encrypt-secrets:
 	@echo ====== encrypt secrets using fingerprint:  ${SOPS_PGP_FP} ====
-	@$(shell go env GOPATH)/bin/sops --verbose -p ${SOPS_PGP_FP} -e staging/.env > staging/.enc.env
-	@$(shell go env GOPATH)/bin/sops --verbose -p ${SOPS_PGP_FP} -e staging/.env-db > staging/.enc.env-db
+	@$$(go env GOPATH)/bin/sops --verbose -p ${SOPS_PGP_FP} -e staging/.env > staging/.enc.env
+	@$$(go env GOPATH)/bin/sops --verbose -p ${SOPS_PGP_FP} -e staging/.env-db > staging/.enc.env-db
 
+.PHONY: sops-decrypt-secrets
 sops-decrypt-secrets:
 	@echo ====== decrypt secrets ====
-	@$(shell go env GOPATH)/bin/sops --verbose -d staging/.enc.env > staging/.env
-	@$(shell go env GOPATH)/bin/sops --verbose -d staging/.enc.env-db > staging/.env-db
+	@$$(go env GOPATH)/bin/sops --verbose --decrypt --output=staging/.env staging/.enc.env
+	@$$(go env GOPATH)/bin/sops --verbose --decrypt --output=staging/.env-db staging/.enc.env-db
 
 sops-edit-env:
-	@$(shell go env GOPATH)/bin/sops --verbose -p ${SOPS_PGP_FP} staging/.enc.env
+	@$$(go env GOPATH)/bin/sops --verbose -p ${SOPS_PGP_FP} staging/.enc.env
 
 sops-edit-env-db:
-	@$(shell go env GOPATH)/bin/sops --verbose -p ${SOPS_PGP_FP} staging/.enc.env-db
+	@$$(go env GOPATH)/bin/sops --verbose -p ${SOPS_PGP_FP} staging/.enc.env-db
 
 sops-add-access:
 	gpg --list-keys
-	@$(shell go env GOPATH)/bin/sops --verbose --rotate --in-place --add-pgp <key-id> staging/.enc.env-db
+	@$$(go env GOPATH)/bin/sops --verbose --rotate --in-place --add-pgp <key-id> staging/.enc.env-db
 
 sops-remove-access:
 	gpg --list-keys
-	@$(shell go env GOPATH)/bin/sops --verbose --rotate --in-place --rm-pgp <key-id> staging/.enc.env-db
+	@$$(go env GOPATH)/bin/sops --verbose --rotate --in-place --rm-pgp <key-id> staging/.enc.env-db
 
 # https://github.com/mozilla/sops#adding-and-removing-keys
 sops-add-access-with-sops.yaml:
@@ -114,7 +115,7 @@ sops-add-access-with-sops.yaml:
 	@echo '==>' add key to the \.sops.yaml file.
 	@echo =======================================+
 	@cat ../../../.sops.yaml
-	@$(shell go env GOPATH)/bin/sops updatekeys staging/.enc.env-db
+	@$$(go env GOPATH)/bin/sops updatekeys staging/.enc.env-db
 
 lb-health-request:
 	@echo ====== health-request via LoadBalancer ==============================
