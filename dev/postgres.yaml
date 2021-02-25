@@ -15,7 +15,7 @@ spec:
       hostNetwork: true
       containers:
       - name: postgres
-        image: postgres:13.1-alpine
+        image: postgres:13.2-alpine
         imagePullPolicy: Always
         env:
         - name: POSTGRES_PASSWORD
