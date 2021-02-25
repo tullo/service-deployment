@@ -1,18 +1,10 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
-# map extra ports from the nodes to the host machine
 - role: control-plane
+  # port forward traffic to the kind node IPs-
+  # https://kind.sigs.k8s.io/docs/user/configuration/#extra-port-mappings
+  # With docker on Linux you can simply send traffic to the node IPs from the host without this!
   extraPortMappings:
   - containerPort: 5432
     hostPort: 5432
-  - containerPort: 3000
-    hostPort: 3000
-  - containerPort: 3001
-    hostPort: 3001
-  - containerPort: 4000
-    hostPort: 4000
-  - containerPort: 4001
-    hostPort: 4001
-  - containerPort: 9411
-    hostPort: 9411
