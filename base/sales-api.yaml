@@ -12,7 +12,7 @@ spec:
         app: sales-api
     spec:
       dnsPolicy: ClusterFirstWithHostNet
-      hostNetwork: true
+      hostNetwork: false
       securityContext:
         runAsNonRoot: true
       containers:
