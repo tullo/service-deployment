@@ -21,7 +21,10 @@ spec:
         ports:
         - name: zipkin
           containerPort: 9411
-        resources: {}
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi      
         securityContext:
           capabilities:
             drop:
@@ -37,6 +40,18 @@ spec:
           containerPort: 3000
         - name: app-debug
           containerPort: 4000
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi      
+        securityContext:
+          capabilities:
+            drop:
+              - all
+          runAsUser: 10000
+          runAsNonRoot: true
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
         readinessProbe:
           httpGet:
             path: /debug/readiness
@@ -49,15 +64,6 @@ spec:
             port: app-debug
           initialDelaySeconds: 30
           periodSeconds: 15
-        resources: {}
-        securityContext:
-          capabilities:
-            drop:
-              - all
-          runAsUser: 10000
-          runAsNonRoot: true
-          readOnlyRootFilesystem: true
-          allowPrivilegeEscalation: false
       - name: metrics
         image: eu.gcr.io/tullo-starter-kit/metrics-amd64:1.0
         ports:
@@ -65,7 +71,10 @@ spec:
           containerPort: 3001
         - name: metrics-debug
           containerPort: 4001
-        resources: {}
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
         securityContext:
           capabilities:
             drop:
